@@ -1,0 +1,401 @@
+<!DOCTYPE HTML>
+
+<html>
+	<head>
+		<title>Graficación de acelerogramas</title>
+		<link rel="stylesheet" type="text/css" href="index.css">
+	</head>
+	
+	<body>
+	
+	<div id="container">
+		<div id="left-side">
+			<div>
+				<img id="graficasSVG" alt="Graficas" height="124"/>
+				<img id="procesando" src="./imagenes/espera.gif" alt="Graficas" height="124"/>
+			</div>
+		</div>
+		
+		<br>
+		
+		<div id="right-side">
+			<div>
+			
+				<!--label for="file-upload" class="custom-file-upload">Cargar archivo</label>
+				<input id="file-upload" type="file" onchange="read(this)"/-->
+				<input id="file-upload" type="file" onchange="read(this)"/>
+				<button  class="botonRosa" onclick="document.getElementById('file-upload').click()"/>
+				Cargar Archivo</button>
+				
+				<!--input class="botonRosa" type="file" onchange="read(this)"/-->
+				<button class="botonMorado" onclick="mostrarMenu()">Agregar filtro</button>
+				<div id="menu" style="display: none;">
+					<select id="tipoBloque">
+						<option value="Taper">Taper</option>
+						<option value="Bandpass">Bandpass</option>
+						<option value="Lowpass">Lowpass</option>
+						<option value="Highpass">Highpass</option>
+						<option value="Derive">Derive</option>
+						<option value="Integrate">Integrate</option>
+						<option value="Integrate2">Integrate2</option>
+						<option value="IntegrateTrapecio">IntegrateTrapecio</option>
+						
+					</select>
+					<button onclick="agregarBloque()">Aceptar</button>
+				</div>
+			</div>
+			<div id="bloque-container" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+			<button class="botonMorado" onclick="obtenerBloques()">Aplicar</button>
+		</div>
+		
+		<div id="opcionesContainer"></div>
+	</div>
+	<!--div class="opciones" id="opcTaper">
+    <div class="content">
+            <div class="content-text">Opciones de Taper
+            <a href="#">Leer más.</a></div>
+            <div class="content-buttons"><a href="#" id="close-button">Aceptar</a></div>
+        </div>
+</div-->
+		
+	</body>
+	<script type = "text/javascript">
+	
+	
+
+//https://stackoverflow.com/questions/3582671/how-to-open-a-local-disk-file-with-javascript
+
+			//var image = document.getElementsByClassName("graficasSVG");
+			//var image = document.getElementsByClassName("graficasSVG")[0]; 
+			//var image = document.getElementById("graficasSVG");
+			procesando.style.display="none";
+			graficasSVG.style.display="none";
+			//opciones.style.display = "none";
+//			var input = document.getElementById("selectfile");
+			//image.src = "./SXPU1709.191_Acel.svg";
+
+			
+			//graficasSVG
+			
+			function WebSocketTest2(str) {
+				
+				if ("WebSocket" in window) {
+					var ws = new WebSocket("ws://localhost:9002");
+					ws.onopen = function() {
+						//console.log("Enviando: "+nameFile)
+						//image.setAttribute('src', "./espera2.gif");
+						procesando.style.display="block";
+						//procesando.src="./espera.gif";
+						//procesando.height=124;
+						ws.send(str);
+					};
+				
+					ws.onmessage = function (evt) { 
+						//console.log("Recibiendo: "+String(evt.data));
+						var received_msg = JSON.parse(String(evt.data));
+						//console.log("JSON: "+received_msg,received_msg.F);
+						//image.setAttribute('src', "./"+received_msg);
+						procesando.style.display="none";
+						//graficasSVG.src="";
+						//graficasSVG.style.display="none";
+						graficasSVG.src="./"+received_msg.F+"#" + new Date().getTime();;
+						graficasSVG.style.display="block";
+						graficasSVG.height=600;
+					};
+					
+					ws.onclose = function() { 
+						console.log("Cerrando conexion")
+					};
+				} else {
+					alert("WebSocket NOT supported by your Browser!");
+				}
+			}
+			
+	function readFile(file) {
+		return new Promise((resolve, reject) => {
+			let fr = new FileReader();
+			fr.onload = x=> resolve(fr.result);
+			fr.readAsText(file);
+		})
+	}
+
+	async function read(input) {
+		let str = await readFile(input.files[0]);
+		WebSocketTest2("AF"+str);
+	}
+
+
+  function allowDrop(event) {
+    event.preventDefault();
+  }
+
+  function drag(event) {
+    // Guarda el ID del elemento arrastrado
+    event.dataTransfer.setData("text", event.target.id);
+  }
+
+  function drop(event) {
+    event.preventDefault();
+    var data = event.dataTransfer.getData("text");
+    var draggedElement = document.getElementById(data);
+
+    // Verifica si el bloque se está moviendo dentro del mismo contenedor
+    if (event.target.className === "bloque" || event.target.id === "bloque-container") {
+      // Inserta el bloque antes o después del elemento de destino
+      var rect = event.target.getBoundingClientRect();
+      var dropPosition = (event.clientY - rect.top) / (rect.bottom - rect.top);
+      var dropIndex = Array.from(event.target.parentElement.children).indexOf(event.target);
+
+      if (dropPosition < 0.5) {
+        event.target.parentElement.insertBefore(draggedElement, event.target);
+      } else {
+        event.target.parentElement.insertBefore(draggedElement, event.target.nextSibling);
+      }
+    }
+  }
+
+  function dragEnd(event) {
+    var bloqueContainer = document.getElementById("bloque-container");
+    var draggedElement = document.getElementById(event.target.id);
+    var rect = bloqueContainer.getBoundingClientRect();
+		console.log("event x", event.clientX )
+		console.log("rect x", rect.left ,rect.right )
+		console.log("event y", event.clientY )
+		console.log("rect y", rect.top ,rect.bottom )
+    // Verifica si el bloque se ha soltado fuera del contenedor
+    
+    if (
+      event.clientX <= rect.left ||
+      event.clientX >= rect.right ||
+      event.clientY <= rect.top ||
+      event.clientY >= rect.bottom
+    ) {
+      // Elimina el bloque si está fuera del contenedor
+      draggedElement.remove();
+    }
+  }
+
+  function mostrarMenu() {
+    document.getElementById("menu").style.display = "block";
+  }
+
+  function agregarBloque() {
+    var tipoBloque = document.getElementById("tipoBloque").value;
+    var nuevoBloque = document.createElement("div");
+    var opcNuevoBloque = document.createElement("div");
+    let newtime=new Date().getTime();
+    
+    nuevoBloque.id = "bloque" + newtime;
+    nuevoBloque.newtime=newtime;
+    opcNuevoBloque.id = "opciones" + newtime;
+    
+    
+    nuevoBloque.className = "bloque";
+    //nuevoBloque.classList.add("bloque");
+    opcNuevoBloque.className = "opciones";
+    //opcNuevoBloque.classList.add("opciones");
+    
+    // Contenido del bloque
+    nuevoBloque.innerHTML = `
+      <span>${tipoBloque}</span>
+      <button class="opciones-btn" onclick="${opcNuevoBloque.id}.style.display = 'block';">Opciones</button>
+    `;
+
+		
+		
+    nuevoBloque.draggable = true;
+    
+    //nuevoBloque.opciones = {color:"rojo"};
+
+    nuevoBloque.addEventListener("dragstart", drag);
+    nuevoBloque.addEventListener("dragover", allowDrop);
+    nuevoBloque.addEventListener("drop", drop);
+    nuevoBloque.addEventListener("dragend", dragEnd);
+
+    document.getElementById("bloque-container").appendChild(nuevoBloque);
+    document.getElementById("menu").style.display = "none";
+    
+    
+    
+    opcNuevoBloque.style.display = 'none';
+    
+    //console.log(nuevoBloque.opciones.R)
+    
+		if(tipoBloque=="Taper"){
+			nuevoBloque.opciones={R:6}
+			opcNuevoBloque.innerHTML =
+			`<div class="content">
+				<div class="content-text"><b>Opciones de ${tipoBloque}</b></div>
+				<div class="content-text">La función Taper se aplica a una señal de tiempo para mejorar sus propiedades en el dominio de la frecuencia.</div>
+				<br>
+				<div>
+					<label for=${"R"+ newtime}>R (%)</label>
+					<input type="number" id=${"R"+ newtime} name="quantity" min=0 max=100 value=${nuevoBloque.opciones.R}>
+				</div>
+				
+				<div class="content-buttons">
+					<a href="#" onclick="
+					${opcNuevoBloque.id}.style.display = 'none';
+					${nuevoBloque.id}.opciones = {
+						R:Number(${"R"+ newtime}.value)
+						};
+					">Cerrar</a>
+				</div>
+			</div>`
+		}
+		else if(tipoBloque=="Bandpass"){
+			nuevoBloque.opciones={Fmin:0.05, Fmax:15.0, NPolos:4}
+			opcNuevoBloque.innerHTML =
+			`<div class="content">
+				<div class="content-text"><b>Opciones de ${tipoBloque}</b></div>
+				<div class="content-text">El filtro pasa bandas permite pasar frecuencias dentro de un cierto rango y rechaza (atenúa) las frecuencias fuera de ese rango.</div>
+				
+				<div>
+					<label for=${"Fmin"+ newtime}>Fmin</label>
+					<input type="number" id=${"Fmin"+ newtime} name="quantity" min=0 max=100 value=${nuevoBloque.opciones.Fmin}>
+				</div>
+				
+				<div>
+					<label for=${"Fmax"+ newtime}>Fmax</label>
+					<input type="number" id=${"Fmax"+ newtime} name="quantity" min=0 max=100 value=${nuevoBloque.opciones.Fmax}>
+				</div>
+				
+				<div>
+					<label for=${"NPolos"+ newtime}>NPolos</label>
+					<input type="number" id=${"NPolos"+ newtime} name="quantity" min=1 max=100 value=${nuevoBloque.opciones.NPolos}>
+				</div>
+				
+				<div class="content-buttons">
+					<a href="#" onclick="
+					${opcNuevoBloque.id}.style.display = 'none';
+					${nuevoBloque.id}.opciones = {
+						Fmin:Number(${"Fmin"+ newtime}.value),
+						Fmax:Number(${"Fmax"+ newtime}.value),
+						NPolos:Number(${"NPolos"+ newtime}.value),
+						};
+					">Cerrar</a>
+				</div>
+			</div>`
+		}
+		else if(tipoBloque=="Lowpass"){
+			nuevoBloque.opciones={Fmax:15.0, NPolos:4}
+			opcNuevoBloque.innerHTML =
+			`<div class="content">
+				<div class="content-text"><b>Opciones de ${tipoBloque}</b></div>
+				<div class="content-text">Un filtro pasa bajos es un filtro que deja pasar señales con una frecuencia inferior a una frecuencia de corte seleccionada y atenúa señales con frecuencias superiores a la frecuencia de corte.</div>
+				
+				<div>
+					<label for=${"Fmax"+ newtime}>Fmax</label>
+					<input type="number" id=${"Fmax"+ newtime} name="quantity" min=0 max=100 value=${nuevoBloque.opciones.Fmax}>
+				</div>
+				
+				<div>
+					<label for=${"NPolos"+ newtime}>NPolos</label>
+					<input type="number" id=${"NPolos"+ newtime} name="quantity" min=1 max=100 value=${nuevoBloque.opciones.NPolos}>
+				</div>
+				
+				<div class="content-buttons">
+					<a href="#" onclick="
+					${opcNuevoBloque.id}.style.display = 'none';
+					${nuevoBloque.id}.opciones = {
+						Fmax:Number(${"Fmax"+ newtime}.value),
+						NPolos:Number(${"NPolos"+ newtime}.value),
+						};
+					">Cerrar</a>
+				</div>
+			</div>`
+		}
+		else if(tipoBloque=="Highpass"){
+			nuevoBloque.opciones={Fmin:0.05, NPolos:4}
+			opcNuevoBloque.innerHTML =
+			`<div class="content">
+				<div class="content-text"><b>Opciones de ${tipoBloque}</b></div>
+				<div class="content-text">Un filtro pasa altos es un filtro que deja pasar señales con una frecuencia superior a una determinada frecuencia de corte y atenúa señales con frecuencias inferiores a la frecuencia de corte.</div>
+				
+				<div>
+					<label for=${"Fmin"+ newtime}>Fmin</label>
+					<input type="number" id=${"Fmin"+ newtime} name="quantity" min=0 max=100 value=${nuevoBloque.opciones.Fmin}>
+				</div>
+				
+				<div>
+					<label for=${"NPolos"+ newtime}>NPolos</label>
+					<input type="number" id=${"NPolos"+ newtime} name="quantity" min=1 max=100 value=${nuevoBloque.opciones.NPolos}>
+				</div>
+				
+				<div class="content-buttons">
+					<a href="#" onclick="
+					${opcNuevoBloque.id}.style.display = 'none';
+					${nuevoBloque.id}.opciones = {
+						Fmin:Number(${"Fmin"+ newtime}.value),
+						NPolos:Number(${"NPolos"+ newtime}.value),
+						};
+					">Cerrar</a>
+				</div>
+			</div>`
+		}
+		else {
+			opcNuevoBloque.innerHTML =
+			`<div class="content">
+				<div class="content-text">Opciones de ${tipoBloque}</div>
+				<div class="content-buttons">
+					<a href="#" onclick="
+					${opcNuevoBloque.id}.style.display = 'none';
+					${nuevoBloque.id}.opciones = {};
+					">Cerrar</a>
+				</div>
+			</div>`
+		}
+    
+		
+		opcionesContainer.appendChild(opcNuevoBloque);
+
+    
+  }
+
+
+/*
+Data2D smoothing(const Data2D& X, int Fs=5);
+Data2D taper(const Data2D& A, double r=6.0);
+Data2D Lowpass( const Data2D &A, double Fmax,int NPolos=4);
+Data2D Highpass( const Data2D &A, double Fmin,int NPolos=4);
+Data2D Bandpass( const Data2D &A, double Fmin, double Fmax,int NPolos=4);
+
+friend DataFou fou(const Data2D & X);
+friend Data2D abs(const DataFou & X);
+friend Data2D smoothing(const Data2D&, int);
+friend Data2D taper(const Data2D &A, double);
+friend Data2D ResponseSpectrum(Data2D& A,int NT,double Tmin,double Tmax,double z);
+friend double ResponseSpectrum(Data2D& A,double T,double z);
+friend Data2D Derive( const Data2D &A);
+friend Data2D Integrate( const Data2D &A);
+friend Data2D Integrate2( const Data2D &A);
+friend Data2D Lowpass( const Data2D &A, double Fmax,int NPolos);
+friend Data2D Highpass( const Data2D &A, double Fmin,int NPolos);
+friend Data2D Bandpass( const Data2D &A, double Fmin, double Fmax,int NPolos);
+friend Data2D IntegrateTrapecio( const Data2D &A);
+*/
+  function mostrarOpciones(tipoBloque) {
+    //alert("Opciones para el bloque " + tipoBloque);
+    opcionesFiltros.style.display = "block";
+    
+    // Agrega el código para manejar las opciones específicas del bloque aquí
+  }
+
+  function obtenerBloques() {
+    var bloqueContainer = document.getElementById("bloque-container");
+    var bloques = bloqueContainer.getElementsByClassName("bloque");
+    //var opcionesContainer = document.getElementById("bloque-container");
+
+    var ordenBloques = [];
+    console.log("bloques.length:",bloques.length)
+    for (var i = 0; i < bloques.length; i++) {
+      ordenBloques.push(bloques[i].textContent+JSON.stringify(bloques[i].opciones));
+      //ordenBloques.push(bloques[i].textContent);
+      console.log(i,bloques[i].textContent)
+    }
+
+    console.log("Bloques en el contenedor y su orden:" + ordenBloques.join("\n"));
+    WebSocketTest2("AO"+ordenBloques.join("\n"));
+  }
+		</script>
+</html>

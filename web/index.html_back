@@ -1,0 +1,128 @@
+<!DOCTYPE HTML>
+
+<html>
+	<head>
+		
+	</head>
+	
+	<body>
+	<div id="drop_zone" 
+		ondrop="dropHandler(event);"
+		ondragover="dragOverHandler(event);"
+		style="width: 400px; border: 2px solid blue;  height: 200px; background-color: #ABBAEA;"">
+	<!--a href = "javascript:WebSocketTest2()">Run WebSocket</a>
+	<button type="button">Abrir archivo</button-->
+		<img id="graficasSVG" alt="Graficas"/>
+		<br>
+		<label for="selectfile">Archivo:</label>
+		<input type="file" id="selectfile" name="selectfile" />
+	</div>
+	<br>
+	
+	<input type="file" onchange="read(this)"/>
+<h3>Content:</h3><pre id="msg"></pre>
+
+			
+		
+		
+	</body>
+	<script type = "text/javascript">
+	
+	//https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API/File_drag_and_drop
+	function dropHandler(ev) {
+  console.log("File(s) dropped");
+
+  // Prevent default behavior (Prevent file from being opened)
+  ev.preventDefault();
+
+  if (ev.dataTransfer.items) {
+    // Use DataTransferItemList interface to access the file(s)
+    [...ev.dataTransfer.items].forEach((item, i) => {
+      // If dropped items aren't files, reject them
+      if (item.kind === "file") {
+        const file = item.getAsFile();
+        console.log(`… file[${i}].name = ${file.name}`);
+        WebSocketTest2(file.name);
+      }
+    });
+  } else {
+    // Use DataTransfer interface to access the file(s)
+    [...ev.dataTransfer.files].forEach((file, i) => {
+      console.log(`****… file[${i}].name = ${file.name}`);
+      console.log("./"+file.name);
+      //WebSocketTest2("./"+file.name);
+    });
+  }
+}
+
+function dragOverHandler(ev) {
+  console.log("File(s) in drop zone");
+
+  // Prevent default behavior (Prevent file from being opened)
+  ev.preventDefault();
+}
+
+//https://stackoverflow.com/questions/3582671/how-to-open-a-local-disk-file-with-javascript
+
+			//var image = document.getElementsByClassName("graficasSVG");
+			//var image = document.getElementsByClassName("graficasSVG")[0]; 
+			var image = document.getElementById("graficasSVG");
+			var input = document.getElementById("selectfile");
+			//image.src = "./SXPU1709.191_Acel.svg";
+
+			input.addEventListener('change', function(e) {
+				if (input.files[0]) {
+					console.log("input.files[0]:"+input.files[0]);
+					console.log("input.files[0].name:"+input.files[0].name);
+					console.log("input.value:"+input.value);
+					//document.body.append('You selected ' + e.target.files[0].name);
+					//var path = (window.URL || window.webkitURL).createObjectURL(e.target.files[0]);
+					//console.log('path', path);
+					WebSocketTest2(input.files[0].name);
+					
+					//WebSocketTest2(path);
+				}
+			});
+			//graficasSVG
+			
+			function WebSocketTest2(nameFile) {
+				
+				if ("WebSocket" in window) {
+					var ws = new WebSocket("ws://localhost:9002");
+					ws.onopen = function() {
+						console.log("Enviando: "+nameFile)
+						ws.send("AF"+nameFile);
+					};
+				
+					ws.onmessage = function (evt) { 
+						var received_msg = evt.data;
+						console.log("Recibiendo: "+received_msg);
+						image.setAttribute('src', "./"+received_msg);
+					};
+					
+					ws.onclose = function() { 
+						console.log("Cerrando conexion")
+					};
+				} else {
+					alert("WebSocket NOT supported by your Browser!");
+				}
+			}
+			
+	function readFile(file) {
+		return new Promise((resolve, reject) => {
+			let fr = new FileReader();
+			fr.onload = x=> resolve(fr.result);
+			fr.readAsText(file);
+		})
+	}
+
+	async function read(input) {
+		//msg.innerText = await readFile(input.files[0]);
+		let str = await readFile(input.files[0]);
+		WebSocketTest2(str);
+	}
+
+			
+
+		</script>
+</html>

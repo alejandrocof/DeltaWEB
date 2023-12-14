@@ -1,0 +1,167 @@
+
+body {
+	margin: 0;
+	padding: 0;
+	font-family: Arial, sans-serif;
+	overflow: hidden;
+}
+
+#container {
+	display: flex;
+	}
+
+#left-side {
+	flex: 1;
+	min-width: 800px;
+	position: relative;
+}
+
+#right-side {
+	flex: auto;
+	padding: 20px;
+	max-width: 300px;
+	box-sizing: border-box;
+	background-color: #f0f0f0;
+}
+
+#procesando{
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	display: none;
+	z-index: 1;
+}
+
+#graficasSVG
+{
+	height: auto;
+	display: block;
+	z-index: -1;
+}
+
+.opciones {
+	background: rgba(33, 41, 52, .65);
+	left: 0;
+	bottom: 0;
+	right: 0;
+	top: 0;
+	display: flex;
+	position: fixed;
+	z-index: 999;
+}
+
+.opciones .content {
+	background: #fff;
+	border-radius: 2px;
+	box-shadow: 0 1px 3px rgba(33, 41, 52, .75);
+	box-sizing: content-box;
+	display: flex;
+	flex-direction: column;
+	margin: auto;
+	max-width: 600px;
+	min-width: 320px !important;
+	overflow: hidden;
+	position: relative;
+	width: 100%;
+	padding: 2rem;
+	font-size: 1.3rem;
+}
+
+.content-buttons {
+	text-align: center;
+	margin-top: 1rem;
+}
+
+.content-buttons a {
+	text-decoration: none;
+	display: inline-block;
+	padding: 1rem;
+	background-color: #0080DE;
+	color: #FFF;
+	text-transform: uppercase;
+}
+
+.content-buttons a:hover {
+	background-color: #006AB8;
+}
+
+.content-text a {
+	color: #0080DE;
+	text-decoration: none;
+}
+
+.content-text a:hover {
+	color: #006AB8;
+	text-decoration: underline;
+	text-align: justify;
+}
+
+.botonRosa {
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	align-items: center;
+	width: 220px;
+	margin: 20px;
+	margin-bottom: 20px;
+	margin-top: 20px;
+	border: 0px solid #ccc;
+	background-color: #db34d9;
+	color: #fff;
+	padding: 10px;
+	cursor: pointer;
+}
+
+.botonMorado {
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	align-items: center;
+	width: 220px;
+	margin: 20px;
+	margin-bottom: 0px;
+	margin-top: 0px;
+	border: 0px solid #ccc;
+	background-color: #a634db;
+	color: #fff;
+	padding: 10px;
+	cursor: pointer;
+}
+
+input[type="file"] {
+	display: none;
+}
+
+#bloque-container {
+	display: flex;
+	flex-direction: column;
+	width: 200px;
+	margin: 20px;
+	margin-bottom: 0px;
+	margin-top: 0px;
+	border: 0px solid #ccc;
+	background-color: #99cbed;
+	padding: 10px;
+}
+
+.bloque {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	background-color: #3498db;
+	color: #fff;
+	padding: 10px;
+	margin-bottom: 5px;
+	cursor: grab;
+}
+
+.opciones-btn {
+	background-color: #2ecc71;
+	color: #fff;
+	border: none;
+	padding: 5px;
+	cursor: pointer;
+}
+
+
